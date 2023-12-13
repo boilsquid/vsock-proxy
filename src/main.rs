@@ -86,10 +86,10 @@ async fn main() {
 
     println!("Starting vsock-proxy");
 
-    tokio::spawn(proxy_task());
+    tokio::spawn(proxy_task(source_address, destination_address));
 }
 
-async fn proxy_task() {
+async fn proxy_task(source_address: Address, destination_address: Address) {
     let mut source = match source_address.into_listener().await {
         Ok(source_conn) => source_conn,
         Err(e) => {
