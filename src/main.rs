@@ -100,7 +100,7 @@ async fn proxy_task(source_address: Address, destination_address: Address) {
 
     loop {
         let mut accepted_conn = match source.accept().await {
-            Ok((source_conn, _)) => source_conn,
+            Ok(source_conn) => source_conn,
             Err(e) => {
                 eprintln!("Failed to accept incoming connection - {e}");
                 continue;
