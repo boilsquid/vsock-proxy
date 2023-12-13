@@ -1,0 +1,18 @@
+[package]
+name = "vsock-proxy"
+version = "0.1.2"
+edition = "2021"
+license = "MIT"
+description = "A minimal CLI to proxy TCP traffic to or from VSock"
+authors = ["Evervault Engineering <engineering@evervault.com>"]
+readme = "README.md"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+async-trait = "0.1.73"
+clap = "4.4.6"
+pin-project = "1.1.3"
+thiserror = "1.0.30"
+tokio = { version = "1.12.0", features = ["full"] }
+tokio-vsock = "0.3.2"
