@@ -79,14 +79,6 @@ async fn main() {
         }
     };
 
-    let mut source = match source_address.into_listener().await {
-        Ok(source_conn) => source_conn,
-        Err(e) => {
-            eprintln!("Failed to create source connection - {e}");
-            return;
-        }
-    };
-
     println!("Starting vsock-proxy");
 
     let runtime = tokio::runtime::Builder::new_current_thread()
