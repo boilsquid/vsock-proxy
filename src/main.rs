@@ -79,14 +79,23 @@ async fn main() {
         }
     };
 
-    let runtime = tokio::runtime::Builder::new_current_thread()
-        .enable_io()
-        .build()
-        .expect("Failed to build tokio runtime");
+    let mut source = match source_address.into_listener().await {
+        Ok(source_conn) => source_conn,
+        Err(e) => {
+            eprintln!("Failed to create source connection - {e}");
+            return;
+        }
+    };
 
     println!("Starting vsock-proxy");
 
-    tokio::spawn(proxy_task(source_address, destination_address));
+    let runtime = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .unwrap();
+
+    runtime.block_on(proxy_task(source_address, destination_address));
+
 }
 
 async fn proxy_task(source_address: Address, destination_address: Address) {
