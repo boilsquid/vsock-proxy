@@ -81,12 +81,7 @@ async fn main() {
 
     println!("Starting vsock-proxy");
 
-    let runtime = tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()
-        .unwrap();
-
-    runtime.block_on(proxy_task(source_address, destination_address));
+    proxy_task(source_address, destination_address).await;
 
 }
 
