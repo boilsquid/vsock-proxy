@@ -123,7 +123,15 @@ async fn main() {
                 let client_to_server = io::copy(&mut client_reader, &mut destination_writer);
                 let server_to_client = io::copy(&mut destination_reader, &mut client_writer);
 
-                tokio::try_join!(client_to_server, server_to_client).unwrap();
+                match tokio::try_join!(client_to_server, server_to_client) {
+                    Ok(_) => {
+                        println!("Connection closed");
+                        ()
+                    }
+                    Err(e) => {
+                        eprintln!("Connection closed with error - {e}");
+                    }
+                }
             });
         }
     });
