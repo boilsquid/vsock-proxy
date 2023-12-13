@@ -1,1 +1,0 @@
-{"rustc":927955034769998173,"features":"","target":0,"profile":0,"path":0,"deps":[[7333356460339158070,"build_script_build",false,9868218984059445840]],"local":[{"RerunIfChanged":{"output":"x86_64-unknown-linux-gnu/debug/build/libc-fac2788c55ebb38a/output","paths":["build.rs"]}}],"rustflags":[],"metadata":0,"config":0,"compile_kind":0}
