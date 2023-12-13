@@ -86,53 +86,46 @@ async fn main() {
 
     println!("Starting vsock-proxy");
 
-    runtime.block_on(async move {
-        let mut source = match source_address.into_listener().await {
-            Ok(source_conn) => source_conn,
+    tokio::spawn(proxy_task());
+}
+
+async fn proxy_task() {
+    let mut source = match source_address.into_listener().await {
+        Ok(source_conn) => source_conn,
+        Err(e) => {
+            eprintln!("Failed to create source connection - {e}");
+            return;
+        }
+    };
+
+    loop {
+        let mut accepted_conn = match source.accept().await {
+            Ok((source_conn, _)) => source_conn,
             Err(e) => {
-                eprintln!("Failed to create source connection - {e}");
-                return;
+                eprintln!("Failed to accept incoming connection - {e}");
+                continue;
             }
         };
 
-        loop {
-            let mut accepted_conn = match source.accept().await {
-                Ok(source_conn) => {
-                    source_conn
-                }
-                Err(e) => {
-                    eprintln!("Failed to accept incoming connection - {e}");
-                    continue;
-                }
-            };
+        let mut destination = match destination_address.get_destination_connection().await {
+            Ok(dest_conn) => dest_conn,
+            Err(e) => {
+                eprintln!("Failed to create destination connection - {e}");
+                continue;
+            }
+        };
 
-            let mut destination = match destination_address.get_destination_connection().await {
-                Ok(dest_conn) => {
-                    dest_conn
-                }
-                Err(e) => {
-                    eprintln!("Failed to create destination connection - {e}");
-                    continue;
-                }
-            };
+        tokio::spawn(async move {
+            let (mut client_reader, mut client_writer) = io::split(accepted_conn);
+            let (mut destination_reader, mut destination_writer) = io::split(destination);
 
-            tokio::spawn(async move {
-                let (mut client_reader, mut client_writer) = split(accepted_conn);
-                let (mut destination_reader, mut destination_writer) = split(destination);
+            let client_to_server = io::copy(&mut client_reader, &mut destination_writer);
+            let server_to_client = io::copy(&mut destination_reader, &mut client_writer);
 
-                let client_to_server = io::copy(&mut client_reader, &mut destination_writer);
-                let server_to_client = io::copy(&mut destination_reader, &mut client_writer);
-
-                match tokio::try_join!(client_to_server, server_to_client) {
-                    Ok(_) => {
-                        println!("Connection closed");
-                        ()
-                    }
-                    Err(e) => {
-                        eprintln!("Connection closed with error - {e}");
-                    }
-                }
-            });
-        }
-    });
+            match tokio::try_join!(client_to_server, server_to_client) {
+                Ok(_) => (),
+                Err(e) => eprintln!("Error during proxy operation: {e}"),
+            }
+        });
+    }
 }
